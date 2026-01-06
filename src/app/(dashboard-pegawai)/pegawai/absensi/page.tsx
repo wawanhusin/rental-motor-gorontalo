@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 import { useState, useEffect } from "react";
 import { createClient } from "../../../../lib/supabase"; 
@@ -34,7 +35,7 @@ export default function HalamanAbsensi() {
         .single();
 
       if (dataJadwal) {
-        const jadwalHariIni = dataJadwal[hariIniIndo];
+        const jadwalHariIni = (dataJadwal as any)[hariIniIndo];
         setShiftHariIni(jadwalHariIni);
         if (jadwalHariIni === 'Libur') {
           setIsLibur(true);
