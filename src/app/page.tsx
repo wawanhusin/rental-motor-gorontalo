@@ -32,13 +32,10 @@ export default function LandingPage() {
           
           {/* Logo Brand */}
           <div className="flex items-center gap-3">
-            {/* Ikon Kotak */}
             <div className="w-10 h-10 bg-emerald-500 rounded-xl flex items-center justify-center text-white text-xl font-bold shadow-lg shadow-emerald-500/40">
               R
             </div>
-            {/* Teks Logo */}
             <div>
-              {/* PERUBAHAN WARNA DI SINI: text-emerald-400 */}
               <h1 className="font-extrabold text-xl tracking-wider leading-none text-emerald-400 drop-shadow-sm">
                 RENTAL
               </h1>
@@ -59,7 +56,6 @@ export default function LandingPage() {
               className="flex items-center gap-2 bg-white/10 border border-white/20 hover:bg-emerald-500 hover:border-emerald-500 hover:text-white px-5 py-2.5 rounded-full font-bold transition-all duration-300 group"
             >
               <span className="text-emerald-400 group-hover:text-white transition">Login Staff</span> 
-              
             </Link>
           </div>
         </div>
@@ -165,8 +161,15 @@ export default function LandingPage() {
                       <p className="text-xs text-slate-400">Mulai dari</p>
                       <p className="text-lg font-bold text-emerald-600">Rp {parseInt(m.harga_per_hari.toString()).toLocaleString('id-ID')}</p>
                     </div>
-                    <Link href={`https://wa.me/628988891921?text=Halo,%20saya%20mau%20sewa%20${m.model}`} className="w-10 h-10 bg-slate-900 hover:bg-emerald-500 rounded-full flex items-center justify-center text-white transition shadow-lg">
-                      ↗
+                    {/* === BAGIAN INI YANG DIUBAH (TOMBOL WHATSAPP) === */}
+                    <Link 
+                      href={`https://wa.me/628988891921?text=Halo,%20saya%20mau%20sewa%20${m.model}`} 
+                      className="w-10 h-10 bg-slate-900 hover:bg-[#25D366] hover:border-[#25D366] rounded-full flex items-center justify-center text-white transition shadow-lg group-btn"
+                      target="_blank"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M13.601 2.326A7.854 7.854 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.933 7.933 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.898 7.898 0 0 0 13.6 2.326zM7.994 14.521a6.573 6.573 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.557 6.557 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592zm3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.232.148-.43.05-.197-.1-.836-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.323-.335-.445-.34-.114-.007-.247-.007-.38-.007a.729.729 0 0 0-.529.247c-.182.198-.691.677-.691 1.654 0 .977.71 1.916.81 2.049.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.943-.049-.084-.182-.133-.38-.232z"/>
+                      </svg>
                     </Link>
                   </div>
                 </div>
@@ -247,7 +250,7 @@ export default function LandingPage() {
       <footer className="bg-slate-900 text-slate-400 py-12 border-t border-slate-800">
         <div className="container mx-auto px-6 text-center">
           <h2 className="text-2xl font-bold text-white mb-2">RENTAL MOTOR GORONTALO</h2>
-          <p className="mb-6">Jalan Jalan No. 0707, Gorontalo</p>
+          <p className="mb-6">Jalan Jalan No. 77, Gorontalo</p>
           <div className="flex justify-center gap-6 mb-8 text-sm font-bold">
             <a href="#" className="hover:text-emerald-400 transition">INSTAGRAM</a>
             <a href="#" className="hover:text-emerald-400 transition">WHATSAPP</a>
