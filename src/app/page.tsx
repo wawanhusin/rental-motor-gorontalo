@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import Link from "next/link";
@@ -142,7 +143,7 @@ export default function LandingPage() {
               <div key={m.id_motor} className="bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-slate-100 group flex flex-col h-full">
                 <div className="h-60 overflow-hidden relative bg-slate-100">
                   <div className="absolute top-3 right-3 bg-white/90 backdrop-blur text-xs font-bold px-3 py-1 rounded-full shadow-sm z-10 text-slate-700">
-                    {m.tahun}
+                    {(m as any).tahun}
                   </div>
                   {m.gambar_motor ? (
                     <img src={m.gambar_motor} alt={m.model} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
