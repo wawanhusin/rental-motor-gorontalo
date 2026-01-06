@@ -253,9 +253,9 @@ export default function LandingPage() {
           <h2 className="text-2xl font-bold text-white mb-2">RENTAL MOTOR GORONTALO</h2>
           <p className="mb-6">Jalan Jalan No. 77, Gorontalo</p>
           <div className="flex justify-center gap-6 mb-8 text-sm font-bold">
-            <a href="#" className="hover:text-emerald-400 transition">INSTAGRAM</a>
+            <a href="https://www.instagram.com/waiueohsn/" className="hover:text-emerald-400 transition">INSTAGRAM</a>
             <a href="#" className="hover:text-emerald-400 transition">WHATSAPP</a>
-            <a href="#" className="hover:text-emerald-400 transition">FACEBOOK</a>
+            <a href="https://www.facebook.com/wawanhusin" className="hover:text-emerald-400 transition">FACEBOOK</a>
           </div>
           <p className="text-xs text-slate-600">&copy; {new Date().getFullYear()} Rental Motor Premium System. All rights reserved.</p>
         </div>
