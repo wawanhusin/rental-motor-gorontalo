@@ -196,10 +196,11 @@ export default function HalamanLaporan() {
               <CartesianGrid strokeDasharray="3 3" vertical={false} />
               <XAxis dataKey="name" style={{ fontSize: '12px' }} />
               <YAxis style={{ fontSize: '12px' }} />
-              <Tooltip 
-                contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
-                formatter={(value: any) => [`Rp ${(value || 0).toLocaleString()}`, 'Pendapatan']}
-              />
+              <Tooltip
+  contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+  // PERBAIKAN: Ubah tipe value menjadi 'any' agar tidak eror saat data kosong
+  formatter={(value: any) => [`Rp ${Number(value || 0).toLocaleString('id-ID')}`, 'Pendapatan']}
+/>
               <Line type="monotone" dataKey="total" stroke="#2563eb" strokeWidth={3} dot={{r: 4, fill:'#2563eb'}} />
             </LineChart>
           ) : (
