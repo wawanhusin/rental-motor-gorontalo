@@ -131,7 +131,7 @@ export default function LandingPage() {
           <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-4">
             <div>
               <span className="text-emerald-600 font-bold uppercase tracking-widest text-xs">Pilihan Pelanggan</span>
-              <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mt-2">Armada Populer 🔥</h2>
+              <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mt-2">Unit Kami 🔥</h2>
             </div>
             <Link href="/katalog" className="text-slate-600 hover:text-emerald-600 font-bold flex items-center gap-2 transition">
               Lihat Semua <span className="text-xl">→</span>

@@ -59,13 +59,7 @@ export default function NavbarPegawai() {
               </>
             )}
 
-            {/* Menu Khusus MEKANIK */}
-            {jabatan === "mekanik" && (
-              <>
-                <div className="w-px h-6 bg-white/20 mx-2"></div>
-                <NavLink href="/pegawai/perbaikan" label="Perbaikan" />
-              </>
-            )}
+                  
             
             <button 
               onClick={handleLogout}
