@@ -198,7 +198,7 @@ export default function HalamanLaporan() {
               <YAxis style={{ fontSize: '12px' }} />
               <Tooltip 
                 contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
-                formatter={(value: number) => [`Rp ${value.toLocaleString()}`, 'Pendapatan']}
+                formatter={(value: any) => [`Rp ${(value || 0).toLocaleString()}`, 'Pendapatan']}
               />
               <Line type="monotone" dataKey="total" stroke="#2563eb" strokeWidth={3} dot={{r: 4, fill:'#2563eb'}} />
             </LineChart>
