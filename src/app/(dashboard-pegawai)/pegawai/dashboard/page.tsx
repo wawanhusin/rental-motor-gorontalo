@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useEffect, useState } from "react";
@@ -20,7 +21,7 @@ export default function DashboardPegawai() {
         // Ambil Jadwal Hari Ini
         const hariIni = new Date().toLocaleDateString('id-ID', { weekday: 'long' }).toLowerCase();
         const { data: j } = await supabase.from("jadwal_kerja").select(hariIni).eq("id_pegawai", user.id).single();
-        if (j) setShiftHariIni(j[hariIni]);
+        if (j) setShiftHariIni((j as any)[hariIni]);
 
         // Cek Absensi
         const today = new Date().toISOString().split('T')[0];
