@@ -94,7 +94,7 @@ export default function NavbarPegawai() {
           )}
 
           <button onClick={handleLogout} className="block w-full text-left text-red-400 py-2 mt-4 font-bold border-t border-white/10 pt-4">
-            Logout Keluar
+            <span>Logout</span>
           </button>
         </div>
       )}
