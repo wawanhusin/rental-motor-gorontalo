@@ -1,11 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { createClient } from "../../../../lib/supabase"; // Sesuaikan path titik-titik
-import {
-  LineChart, Line, BarChart, Bar, XAxis, YAxis,
-  CartesianGrid, Tooltip, ResponsiveContainer, Cell
-} from "recharts";
+import { createClient } from "@/lib/supabase"; // Pastikan path ini sesuai dengan project Anda
 
 // Tipe data transaksi
 type LaporanTransaksi = {
@@ -29,29 +25,45 @@ export default function HalamanLaporan() {
 
   // --- STATE KONTROL ---
   const [mode, setMode] = useState<'bulanan' | 'tahunan'>('bulanan');
-  const [bulan, setBulan] = useState(new Date().getMonth() + 1); // 1-12
+  const [bulan, setBulan] = useState(new Date().getMonth() + 1);
   const [tahun, setTahun] = useState(new Date().getFullYear());
 
-  // 1. Fetch Data (Ambil SEMUA data VALID)
+  // 1. Fetch Data
   useEffect(() => {
     const ambilData = async () => {
       setLoading(true);
       const supabase = createClient();
       
-      const { data, error } = await supabase
-        .from("transaksi")
-        .select(`
-          id_transaksi, tgl_mulai, total_harga, status_transaksi,
-          motor (merk, model, plat_nomor),
-          pelanggan (nama)
-        `)
-        .in('status_transaksi', ['lunas', 'selesai']) // Hanya uang masuk valid
-        .order('tgl_mulai', { ascending: true });
+      try {
+        const { data, error } = await supabase
+          .from("transaksi")
+          .select(`
+            id_transaksi, tgl_mulai, total_harga, status_transaksi,
+            motor (merk, model, plat_nomor),
+            pelanggan (nama)
+          `)
+          // Filter status yang dianggap valid sebagai pendapatan
+          .in('status_transaksi', ['lunas', 'selesai', 'Lunas']) 
+          .order('tgl_mulai', { ascending: true });
 
-      if (error) console.error(error);
-      else setDataMentah(data as any[] || []);
-      
-      setLoading(false);
+        if (error) {
+          console.error("Error fetching data:", error);
+          setDataMentah([]);
+        } else {
+          // Konversi data ke tipe yang benar
+          const formattedData = (data || []).map(item => ({
+            ...item,
+            motor: item.motor as any,
+            pelanggan: item.pelanggan as any
+          }));
+          setDataMentah(formattedData);
+        }
+      } catch (err) {
+        console.error("Unexpected error:", err);
+        setDataMentah([]);
+      } finally {
+        setLoading(false);
+      }
     };
 
     ambilData();
@@ -59,30 +71,20 @@ export default function HalamanLaporan() {
 
   // --- LOGIKA PENGOLAHAN DATA ---
 
-  // A. DATA MODE BULANAN (Detail Harian)
+  // A. DATA MODE BULANAN
   const dataBulanan = dataMentah.filter((item) => {
     const tgl = new Date(item.tgl_mulai);
     return tgl.getMonth() + 1 === Number(bulan) && tgl.getFullYear() === Number(tahun);
   });
 
-  const chartBulanan = Object.values(
-    dataBulanan.reduce((acc: any, curr) => {
-      const tgl = new Date(curr.tgl_mulai).getDate();
-      if (!acc[tgl]) acc[tgl] = { name: `Tgl ${tgl}`, total: 0, date: tgl };
-      acc[tgl].total += curr.total_harga;
-      return acc;
-    }, {})
-  ).sort((a: any, b: any) => a.date - b.date); // Urutkan tanggal 1-31
-
-  // B. DATA MODE TAHUNAN (Ringkasan Per Bulan)
+  // B. DATA MODE TAHUNAN (Untuk Tabel Rekap)
   const dataTahunan = dataMentah.filter((item) => {
     return new Date(item.tgl_mulai).getFullYear() === Number(tahun);
   });
 
-  // Inisialisasi array 12 bulan kosong biar grafik tetap muncul walau 0
-  const initChartTahunan = NAMA_BULAN.map((nama, index) => ({
-    name: nama.substring(0, 3), // Jan, Feb...
-    fullName: nama,
+  // Siapkan array 12 bulan untuk tabel rekap tahunan
+  const rekapTahunan = NAMA_BULAN.map((nama, index) => ({
+    name: nama,
     index: index,
     total: 0,
     jumlahTransaksi: 0
@@ -90,13 +92,11 @@ export default function HalamanLaporan() {
 
   dataTahunan.forEach((item) => {
     const idxBulan = new Date(item.tgl_mulai).getMonth();
-    initChartTahunan[idxBulan].total += item.total_harga;
-    initChartTahunan[idxBulan].jumlahTransaksi += 1;
+    rekapTahunan[idxBulan].total += item.total_harga;
+    rekapTahunan[idxBulan].jumlahTransaksi += 1;
   });
 
-  const chartTahunan = initChartTahunan; // Data siap pakai untuk grafik tahunan
-
-  // Hitung Total Uang Sesuai Mode
+  // Hitung Total Pendapatan Keseluruhan (Untuk Kartu Atas)
   const totalPendapatan = mode === 'bulanan' 
     ? dataBulanan.reduce((acc, curr) => acc + curr.total_harga, 0)
     : dataTahunan.reduce((acc, curr) => acc + curr.total_harga, 0);
@@ -105,9 +105,19 @@ export default function HalamanLaporan() {
     window.print();
   };
 
+  if (loading) {
+    return (
+      <div className="bg-white p-8 rounded-xl shadow-sm min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-slate-600">Memuat data laporan...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-white p-8 rounded-xl shadow-sm min-h-screen">
-      
       {/* HEADER & CONTROLS */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4 print:hidden">
         <div>
@@ -138,10 +148,11 @@ export default function HalamanLaporan() {
             </button>
           </div>
 
-          {/* Filter Bulan (Hanya muncul di mode bulanan) */}
+          {/* Filter Bulan */}
           {mode === 'bulanan' && (
             <select 
-              value={bulan} onChange={(e) => setBulan(Number(e.target.value))}
+              value={bulan} 
+              onChange={(e) => setBulan(Number(e.target.value))}
               className="bg-white border border-gray-300 text-sm rounded p-2 focus:ring-2 focus:ring-blue-500"
             >
               {NAMA_BULAN.map((nama, i) => (
@@ -150,9 +161,10 @@ export default function HalamanLaporan() {
             </select>
           )}
 
-          {/* Filter Tahun (Selalu muncul) */}
+          {/* Filter Tahun */}
           <select 
-            value={tahun} onChange={(e) => setTahun(Number(e.target.value))}
+            value={tahun} 
+            onChange={(e) => setTahun(Number(e.target.value))}
             className="bg-white border border-gray-300 text-sm rounded p-2 focus:ring-2 focus:ring-blue-500 font-bold"
           >
             <option value="2024">2024</option>
@@ -184,106 +196,82 @@ export default function HalamanLaporan() {
         </div>
       </div>
 
-      {/* --- VISUALISASI GRAFIK --- */}
-      <div className="h-[350px] w-full mb-10 print:h-[250px]">
-        <h3 className="font-bold text-slate-700 mb-4">
-          {mode === 'bulanan' ? 'Grafik Tren Harian' : 'Grafik Performa Bulanan'}
-        </h3>
-        <ResponsiveContainer width="100%" height="100%">
-          {mode === 'bulanan' ? (
-            // GRAFIK GARIS (Bulanan)
-            <LineChart data={chartBulanan}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} />
-              <XAxis dataKey="name" style={{ fontSize: '12px' }} />
-              <YAxis style={{ fontSize: '12px' }} />
-              <Tooltip
-  contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
-  // PERBAIKAN: Ubah tipe value menjadi 'any' agar tidak eror saat data kosong
-  formatter={(value: any) => [`Rp ${Number(value || 0).toLocaleString('id-ID')}`, 'Pendapatan']}
-/>
-              <Line type="monotone" dataKey="total" stroke="#2563eb" strokeWidth={3} dot={{r: 4, fill:'#2563eb'}} />
-            </LineChart>
-          ) : (
-            // GRAFIK BATANG (Tahunan)
-            <BarChart data={chartTahunan}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} />
-              <XAxis dataKey="name" style={{ fontSize: '12px' }} />
-              <YAxis style={{ fontSize: '12px' }} />
-              <Tooltip 
-                cursor={{fill: '#f3f4f6'}}
-                contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
-                formatter={(value: number) => [`Rp ${value.toLocaleString()}`, 'Pendapatan']}
-              />
-              <Bar dataKey="total" radius={[4, 4, 0, 0]}>
-                {chartTahunan.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.total > 0 ? '#9333ea' : '#e9d5ff'} />
-                ))}
-              </Bar>
-            </BarChart>
-          )}
-        </ResponsiveContainer>
-      </div>
+      {/* --- GRAFIK DIHAPUS --- */}
 
-      {/* --- TABEL DATA --- */}
-      <div className="overflow-x-auto">
-        <h3 className="font-bold text-slate-700 mb-4">
+      {/* TABEL DATA */}
+      <div className="overflow-x-auto border border-gray-100 rounded-lg">
+        <h3 className="font-bold text-slate-700 p-4 bg-gray-50 border-b">
           {mode === 'bulanan' ? 'Rincian Transaksi' : 'Rekapitulasi Per Bulan'}
         </h3>
         
         <table className="w-full text-sm text-left border-collapse">
-          <thead className="bg-gray-100 text-slate-600 uppercase text-xs">
+          <thead className="bg-white text-slate-600 uppercase text-xs border-b-2 border-gray-100">
             <tr>
               {mode === 'bulanan' ? (
                 // Header Tabel Bulanan
                 <>
-                  <th className="p-3 border-b">Tanggal</th>
-                  <th className="p-3 border-b">Pelanggan</th>
-                  <th className="p-3 border-b">Unit Motor</th>
-                  <th className="p-3 border-b text-right">Nominal</th>
+                  <th className="p-3">Tanggal</th>
+                  <th className="p-3">Pelanggan</th>
+                  <th className="p-3">Unit Motor</th>
+                  <th className="p-3 text-right">Nominal</th>
                 </>
               ) : (
                 // Header Tabel Tahunan
                 <>
-                  <th className="p-3 border-b">Bulan</th>
-                  <th className="p-3 border-b text-center">Jumlah Transaksi</th>
-                  <th className="p-3 border-b text-right">Total Pendapatan</th>
-                  <th className="p-3 border-b text-right">Rata-rata / Transaksi</th>
+                  <th className="p-3">Bulan</th>
+                  <th className="p-3 text-center">Jumlah Transaksi</th>
+                  <th className="p-3 text-right">Total Pendapatan</th>
+                  <th className="p-3 text-right">Rata-rata</th>
                 </>
               )}
             </tr>
           </thead>
-          <tbody>
+          <tbody className="divide-y divide-gray-50">
             {mode === 'bulanan' ? (
               // BODY TABEL BULANAN
-              dataBulanan.length > 0 ? dataBulanan.map((t) => (
-                <tr key={t.id_transaksi} className="border-b hover:bg-gray-50">
-                  <td className="p-3 font-mono text-slate-500">{t.tgl_mulai}</td>
-                  <td className="p-3 font-medium text-slate-900">{t.pelanggan?.nama || 'Anonim'}</td>
-                  <td className="p-3 text-slate-700">
-                    {t.motor?.merk} {t.motor?.model} 
-                    <span className="text-xs bg-gray-100 ml-2 px-1 rounded">{t.motor?.plat_nomor}</span>
+              dataBulanan.length > 0 ? (
+                dataBulanan.map((t) => (
+                  <tr key={t.id_transaksi} className="hover:bg-gray-50">
+                    <td className="p-3 font-mono text-slate-500">{t.tgl_mulai}</td>
+                    <td className="p-3 font-medium text-slate-900">{t.pelanggan?.nama || 'Anonim'}</td>
+                    <td className="p-3 text-slate-700">
+                      {t.motor ? `${t.motor.merk} ${t.motor.model}` : 'Tidak diketahui'}
+                      {t.motor?.plat_nomor && (
+                        <span className="text-xs bg-gray-100 ml-2 px-1 rounded border">
+                          {t.motor.plat_nomor}
+                        </span>
+                      )}
+                    </td>
+                    <td className="p-3 text-right font-bold text-slate-800">
+                      Rp {t.total_harga.toLocaleString('id-ID')}
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={4} className="p-8 text-center text-slate-400 italic">
+                    Tidak ada transaksi pada periode ini
                   </td>
-                  <td className="p-3 text-right font-bold text-slate-800">Rp {t.total_harga.toLocaleString()}</td>
                 </tr>
-              )) : <tr><td colSpan={4} className="p-4 text-center text-slate-400">Data Kosong</td></tr>
+              )
             ) : (
               // BODY TABEL TAHUNAN
-              chartTahunan.map((bln) => (
-                <tr key={bln.name} className="border-b hover:bg-gray-50">
-                  <td className="p-3 font-bold text-slate-700">{bln.fullName}</td>
+              rekapTahunan.map((bln) => (
+                <tr key={bln.name} className="hover:bg-gray-50">
+                  <td className="p-3 font-bold text-slate-700">{bln.name}</td>
                   <td className="p-3 text-center">
                     {bln.jumlahTransaksi > 0 ? (
                       <span className="bg-purple-100 text-purple-700 px-2 py-1 rounded-full text-xs font-bold">
-                        {bln.jumlahTransaksi} x
+                        {bln.jumlahTransaksi} Transaksi
                       </span>
                     ) : "-"}
                   </td>
                   <td className={`p-3 text-right font-bold ${bln.total > 0 ? 'text-slate-900' : 'text-slate-300'}`}>
-                    Rp {bln.total.toLocaleString()}
+                    Rp {bln.total.toLocaleString('id-ID')}
                   </td>
                   <td className="p-3 text-right text-slate-500 text-xs">
                     {bln.jumlahTransaksi > 0 
-                      ? `Rp ${Math.round(bln.total / bln.jumlahTransaksi).toLocaleString()}` 
+                      ? `Rp ${Math.round(bln.total / bln.jumlahTransaksi).toLocaleString('id-ID')}` 
                       : '-'}
                   </td>
                 </tr>
